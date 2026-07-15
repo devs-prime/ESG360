@@ -1,0 +1,121 @@
+openapi: 3.0.3
+info:
+  title: ESG360 API
+  version: 0.1.0
+  description: |
+    ESG360 platform API (contract-first, ADR-0014). Conventions that apply to every endpoint:
+      * Base path `/api/v1`; JSON UTF-8; ISO-8601 UTC timestamps.
+      * **Decimal values are serialised as JSON strings** — never binary floating point (ADR-0006).
+      * Errors use RFC 9457 Problem Details (`application/problem+json`) with `code`,
+        `correlationId`, `retryable` and, for validation, `fieldErrors`.
+      * List endpoints use opaque **cursor** pagination (never offset).
+      * Create/import endpoints honour `Idempotency-Key`; mutations use `If-Match` (ETag) for
+        optimistic concurrency.
+      * The tenant is resolved from the OAuth2 token, never from the request body.
+servers:
+  - url: /api/v1
+security:
+  - oauth2: []
+tags:
+  - name: meta
+    description: Service metadata.
+paths:
+  /meta:
+    get:
+      tags: [meta]
+      operationId: getApiMeta
+      summary: Service name and version. Unauthenticated liveness/among-conventions probe.
+      security: []
+      responses:
+        "200":
+          description: Service metadata.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiMeta"
+components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      description: OAuth2 with tenant and organisation claims (spec 37).
+      flows:
+        clientCredentials:
+          tokenUrl: /oauth2/token
+          scopes: {}
+  parameters:
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: Opaque pagination cursor returned by a previous response.
+      schema:
+        type: string
+    Limit:
+      name: limit
+      in: query
+      required: false
+      description: Page size (clamped server-side).
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Client-generated key making a create/import request safely retryable.
+      schema:
+        type: string
+    IfMatch:
+      name: If-Match
+      in: header
+      required: false
+      description: ETag (quoted row_version) for optimistic concurrency on mutations.
+      schema:
+        type: string
+  schemas:
+    ApiMeta:
+      type: object
+      required: [name, version, apiVersion]
+      properties:
+        name:
+          type: string
+          example: esg360
+        version:
+          type: string
+          example: 0.1.0-SNAPSHOT
+        apiVersion:
+          type: string
+          example: v1
+    ProblemDetail:
+      type: object
+      description: RFC 9457 Problem Details (documents the error shape used by every endpoint).
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        code:
+          type: string
+          description: Stable machine-readable error code.
+        correlationId:
+          type: string
+        retryable:
+          type: boolean
+        fieldErrors:
+          type: array
+          items:
+            $ref: "#/components/schemas/FieldError"
+    FieldError:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string

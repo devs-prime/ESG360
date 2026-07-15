@@ -5,9 +5,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, "feat/**"]
+  # All PRs, regardless of base — supports stacked feature branches.
   pull_request:
-    branches: [main]
 
 permissions:
   contents: read
