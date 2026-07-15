@@ -41,7 +41,7 @@
     <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
     <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
     <checkstyle.version>10.20.2</checkstyle.version>
-    <cyclonedx-maven-plugin.version>2.8.0</cyclonedx-maven-plugin.version>
+    <cyclonedx-maven-plugin.version>2.9.2</cyclonedx-maven-plugin.version>
   </properties>
 
   <dependencyManagement>
