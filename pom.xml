@@ -29,7 +29,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
     <!-- Platform (ADR-0018, ADR-0002, ADR-0017) -->
-    <spring-boot.version>3.5.3</spring-boot.version>
+    <spring-boot.version>4.1.0</spring-boot.version>
 
     <!-- Guardrails -->
     <archunit.version>1.3.0</archunit.version>
