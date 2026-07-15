@@ -1,0 +1,119 @@
+# ESG360 Build Progress
+
+Statuses: `—` not started · `PLANNED` plan approved · `WIP` · `TESTS` acceptance tests passing · `DONE` reviewed & merged
+
+Update this file at the end of every Claude Code session. Deviations from spec get a note.
+
+> **Scope:** `V1-SCOPE.md` cuts v1 to R0 + R1's carbon core. R2–R4 below stay in the plan but
+> are **not** v1 work. Don't start them.
+
+## Release 0 — Foundation (build first, in this order)
+
+| # | Module | Spec | Status | Notes |
+|---|--------|------|--------|-------|
+| 0.1 | Repo scaffolding, CI, lint, test runner, IaC skeleton | specs/technical/43 | — | |
+| 0.2 | Shared data model + migrations baseline | specs/architecture/33, technical/39 | — | Freeze before any module |
+| 0.3 | API skeleton + OpenAPI + error/pagination conventions | specs/technical/37 | — | |
+| 0.4 | Tenant, Organisation & Boundary | specs/modules/02 | — | |
+| 0.5 | Identity, Access & SoD | specs/modules/03 | — | |
+| 0.6 | Audit event service (append-only) | specs/technical/36, modules/24 | — | Needed by everything |
+| 0.7 | Metric & Data-Point Catalogue | specs/modules/04 | — | |
+| 0.8 | Workflow, Notifications & Cases | specs/modules/21 | — | |
+| 0.9 | Evidence & Lineage (core) | specs/modules/06 | — | Assurance rooms deferred to R2 |
+| 0.10 | Integration framework (ingestion, idempotency, quarantine) | specs/modules/22 | — | Adapters come per release |
+| 0.11 | Subscription, Configuration & Admin | specs/modules/23 | — | |
+
+## Release 1 — ESG Data & Carbon
+
+| # | Module | Spec | Status | Notes |
+|---|--------|------|--------|-------|
+| 1.1 | Reporting Cycles & Data Collection | specs/modules/05 | — | |
+| 1.2 | Emission Factor Library | specs/modules/07 | — | |
+| 1.3 | Calculation Engine (shared) | specs/technical/38 + testing/49 | — | Validate against dataset in spec 49 |
+| 1.4 | GHG Inventory Scope 1 & 2 | specs/modules/08 | — | |
+| 1.5 | Scope 3 Value-Chain (core categories) | specs/modules/09 | — | |
+| 1.6 | Energy, Water, Waste & Environment | specs/modules/10 | — | |
+| 1.7 | Dashboards (basic) | specs/modules/19 | — | |
+| 1.8 | Disclosure (basic) | specs/modules/18 | — | |
+
+## Release 2 — Reporting & Assurance
+
+| # | Module | Spec | Status | Notes |
+|---|--------|------|--------|-------|
+| 2.1 | Framework mapping engine (GRI/ISSB/ESRS) | specs/modules/18 | — | |
+| 2.2 | Disclosure workspace + immutable snapshots | specs/modules/18 | — | |
+| 2.3 | Assurance rooms, sampling, sign-off | specs/modules/06 | — | |
+| 2.4 | Carbon Credits & Instruments | specs/modules/17 | — | Release placement indicative |
+| 2.5 | Reports & document outputs / exports | specs/modules/25 | — | |
+
+## Release 3 — Social, Governance & Supplier
+
+| # | Module | Spec | Status | Notes |
+|---|--------|------|--------|-------|
+| 3.1 | Social & Human Capital | specs/modules/11 | — | |
+| 3.2 | Governance, Ethics, Risk & Compliance | specs/modules/12 | — | |
+| 3.3 | Materiality & Stakeholder Engagement | specs/modules/13 | — | |
+| 3.4 | Supplier ESG & Due Diligence (incl. supplier portal) | specs/modules/16 | — | |
+
+## Release 4 — Transition, Climate Risk & AI
+
+| # | Module | Spec | Status | Notes |
+|---|--------|------|--------|-------|
+| 4.1 | Targets, Transition Plans & Initiatives | specs/modules/14 | — | |
+| 4.2 | Climate & Nature Risk, Scenarios | specs/modules/15 | — | |
+| 4.3 | AI Copilots & Intelligent Automation | specs/modules/20 | — | AI guardrails per specs/technical/42 |
+| 4.4 | Advanced analytics & benchmarking | specs/modules/19 | — | |
+
+## Cross-cutting (verify continuously, gate every release)
+
+| Item | Spec | Status | Notes |
+|------|------|--------|-------|
+| NFR/performance tests (NFR-001/002) | specs/testing/48 | — | |
+| DR restore test (DR-001) | specs/testing/48 | — | |
+| Accessibility (ACC-001, WCAG 2.2 AA) | specs/testing/48 | — | |
+| Resilience tests | specs/testing/48 | — | |
+| Security: cross-tenant + SoD suites (SEC-*) | specs/modules/03 | — | Re-run on every module merge |
+
+## Decision log
+
+Full reasoning in `docs/adr/`. This table is the index of what's settled vs open.
+
+| Date | Decision | Status | ADR |
+|------|----------|--------|-----|
+| 2026-07-15 | ~~Backend: .NET 8 LTS~~ | ⛔ Superseded by 0018 | [0001](docs/adr/0001-backend-platform.md) |
+| 2026-07-15 | **Backend: Java 21 + Spring Boot 3 + Flowable** | ✅ **Accepted — signed off** | [0018](docs/adr/0018-backend-platform-revised.md) |
+| 2026-07-15 | Database: **PostgreSQL 16+** | ⚠ **Proposed — sign-off pending discussion** | [0002](docs/adr/0002-relational-database.md) |
+| 2026-07-15 | Tenancy: shared schema + RLS + cells | Proposed | [0003](docs/adr/0003-tenancy-and-cells.md) |
+| 2026-07-15 | Modular monolith, enforced boundaries | Proposed | [0004](docs/adr/0004-modular-monolith.md) |
+| 2026-07-15 | Calc engine: manifest hash, AST, inline lineage | Proposed | [0005](docs/adr/0005-calculation-engine.md) |
+| 2026-07-15 | Precision: decimal, strings over JSON | Proposed | [0006](docs/adr/0006-precision-and-rounding.md) |
+| 2026-07-15 | Audit: append-only + hash chain + WORM | Proposed | [0007](docs/adr/0007-audit-log.md) |
+| 2026-07-15 | Transactional outbox | Proposed | [0008](docs/adr/0008-transactional-outbox.md) |
+| 2026-07-15 | ~~Workflow: custom state machine~~ | ⛔ Superseded by 0019 | [0009](docs/adr/0009-workflow-engine.md) |
+| 2026-07-15 | **Workflow: Flowable embedded** | ✅ **Accepted — signed off** | [0019](docs/adr/0019-workflow-revised.md) |
+| 2026-07-15 | Time-series: native partitioning | Proposed | [0010](docs/adr/0010-time-series.md) |
+| 2026-07-15 | Analytics: replicas + matviews, defer lakehouse | Proposed | [0011](docs/adr/0011-analytics.md) |
+| 2026-07-15 | Evidence: content-addressed + quarantine | Proposed | [0012](docs/adr/0012-evidence-storage.md) |
+| 2026-07-15 | AI: gateway sidecar, never load-bearing | Proposed | [0013](docs/adr/0013-ai-containment.md) |
+| 2026-07-15 | API: contract-first OpenAPI | Proposed | [0014](docs/adr/0014-api-contract.md) |
+| 2026-07-15 | Frontend: Next.js, separate supplier portal | Proposed | [0015](docs/adr/0015-frontend.md) |
+| 2026-07-15 | Deployment: cells, residency by placement | Proposed (runtime amended by 0020) | [0016](docs/adr/0016-deployment-and-residency.md) |
+| 2026-07-15 | **Toolchain: GH Actions, Terraform, Flyway, jOOQ, Maven, Testcontainers** | ✅ **Accepted — signed off** | [0017](docs/adr/0017-toolchain.md) |
+| 2026-07-15 | **Runtime: managed containers, defer Kubernetes** | ✅ **Accepted — signed off** | [0020](docs/adr/0020-runtime-platform-revised.md) |
+| 2026-07-15 | **v1 scope: 1 cell, shared only, Scope 1+2, one framework** | ✅ **Signed off** | [V1-SCOPE.md](V1-SCOPE.md) |
+| — | Cloud provider (Azure / AWS / GCP) | **Deliberately open** — must not block session 1 | [0017](docs/adr/0017-toolchain.md) |
+
+## Architecture verification tasks (add to R0)
+
+| Task | Why | Status |
+|------|-----|--------|
+| Architecture tests: module boundaries, no cross-module FK | ADR-0004 rots without CI enforcement | — |
+| Analyzer: ban float/double in domain assemblies | ADR-0006 — highest-frequency violation | — |
+| Golden-manifest hash gate from spec 49 datasets | ADR-0005 — protects the core product claim | — |
+| Cross-tenant isolation fuzzer on every merge | ADR-0003 — SEC-001/SUP-001 are Critical | — |
+| 1M-record calculation load test | NFR-003 — verify the 10–30× headroom claim early | — |
+| Outbox replay/idempotency test | ADR-0008 — every consumer must be idempotent | — |
+| `Quantity` value type wrapping BigDecimal | ADR-0018 — juniors must never touch raw BigDecimal | — |
+| Flowable `tenantId` wrapper + workflow isolation tests | ADR-0019 — Flowable's tables sit outside RLS | — |
+| **Carbon accountant validates spec 49 golden datasets** | **V1-SCOPE gate — highest-value expert hour on the project** | — |
+| **Security review of tenancy/RLS + identity/SoD** | **V1-SCOPE gate — Critical severity (spec 50)** | — |
