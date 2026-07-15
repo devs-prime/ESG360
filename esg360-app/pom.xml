@@ -68,6 +68,13 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <!-- Classifier keeps the plain jar as the module artifact; the executable
+             (fat) jar is esg360-app-*-boot.jar. Without this the repackaged fat jar
+             replaces the artifact and pollutes the failsafe (integration-test)
+             classpath, breaking @SpringBootTest annotation resolution. -->
+        <configuration>
+          <classifier>boot</classifier>
+        </configuration>
         <executions>
           <execution>
             <goals>
