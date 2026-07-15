@@ -1,6 +1,6 @@
 # ADR-0002: Relational database — PostgreSQL 16+
 
-**Status:** Proposed — needs sign-off before scaffolding
+**Status:** Accepted (signed off 2026-07-15)
 **Drivers:** §28 (deployment profiles), NFR-015 (portability), §31 (tenant isolation), §39, NFR-004
 
 ## Context

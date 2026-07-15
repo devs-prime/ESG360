@@ -82,7 +82,7 @@ Full reasoning in `docs/adr/`. This table is the index of what's settled vs open
 |------|----------|--------|-----|
 | 2026-07-15 | ~~Backend: .NET 8 LTS~~ | ⛔ Superseded by 0018 | [0001](docs/adr/0001-backend-platform.md) |
 | 2026-07-15 | **Backend: Java 21 + Spring Boot 3 + Flowable** | ✅ **Accepted — signed off** | [0018](docs/adr/0018-backend-platform-revised.md) |
-| 2026-07-15 | Database: **PostgreSQL 16+** | ⚠ **Proposed — sign-off pending discussion** | [0002](docs/adr/0002-relational-database.md) |
+| 2026-07-15 | Database: **PostgreSQL 16+** | ✅ **Accepted — signed off** | [0002](docs/adr/0002-relational-database.md) |
 | 2026-07-15 | Tenancy: shared schema + RLS + cells | Proposed | [0003](docs/adr/0003-tenancy-and-cells.md) |
 | 2026-07-15 | Modular monolith, enforced boundaries | Proposed | [0004](docs/adr/0004-modular-monolith.md) |
 | 2026-07-15 | Calc engine: manifest hash, AST, inline lineage | Proposed | [0005](docs/adr/0005-calculation-engine.md) |

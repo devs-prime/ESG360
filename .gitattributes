@@ -1,0 +1,24 @@
+# Normalise line endings: LF in the repo, checked out as-is per platform.
+# CI runs on Linux, so text files are stored with LF.
+* text=auto eol=lf
+
+# Windows-native scripts stay CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Shell scripts and the Maven wrapper must be LF to be executable on Linux CI
+*.sh text eol=lf
+mvnw text eol=lf
+
+# Binary files — never touch
+*.jar binary
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.docx binary
+*.xlsx binary
+*.pptx binary
+*.zip binary

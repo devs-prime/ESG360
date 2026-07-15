@@ -81,7 +81,7 @@ ADR-0019 supersedes 0009 (Flowable, not a custom engine), ADR-0020 amends 0016 (
 - Backend: **Java 21 LTS + Spring Boot 3** (ADR-0018) — ✅ signed off 2026-07-15
 - Workflow: **Flowable, embedded, same DataSource/transaction** (ADR-0019).
   **Never hand-roll workflow orchestration, timers or state machines.**
-- Database: ⚠ **PostgreSQL 16+** (ADR-0002) — forced by the sovereign/private-cloud profiles
+- Database: **PostgreSQL 16+** (ADR-0002) — forced by the sovereign/private-cloud profiles — ✅ signed off 2026-07-15
 - DB access: **jOOQ** (ADR-0017). Bulk paths use raw JDBC `CopyManager`. Not Hibernate/JPA.
 - Migrations: **Flyway**, plain SQL, expand/contract only
 - Build: **Maven** multi-module — one module per §36 boundary
