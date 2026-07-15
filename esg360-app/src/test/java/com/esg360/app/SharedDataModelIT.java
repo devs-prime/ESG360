@@ -29,7 +29,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * is exercised by SET ROLE esg360_app, which mirrors how the deployed app connects: no superuser,
  * no BYPASSRLS, subject to RLS.
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@SpringBootTest(classes = Esg360Application.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @Testcontainers
 class SharedDataModelIT {
 
