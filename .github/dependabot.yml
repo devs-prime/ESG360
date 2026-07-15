@@ -1,0 +1,18 @@
+# Dependency + toolchain updates (spec 43 pt 35)
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      # Spring Boot BOM and its managed deps move together
+      spring:
+        patterns:
+          - "org.springframework*"
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly

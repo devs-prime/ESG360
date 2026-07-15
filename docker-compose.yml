@@ -1,0 +1,30 @@
+# Local development database — PostgreSQL 16 (ADR-0002), locally hosted by decision:
+# no cloud provider is chosen yet (ADR-0017) and none is needed for v1 development.
+#
+#   docker compose up -d        start
+#   docker compose down         stop (data survives in the named volume)
+#   docker compose down -v      stop and wipe data
+#
+# Integration tests do NOT use this instance — they spin their own throwaway
+# containers via Testcontainers. This one is for running the app locally.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: esg360-postgres
+    environment:
+      POSTGRES_DB: esg360
+      POSTGRES_USER: esg360
+      # local-only credential; real profiles get secrets from the (future) secrets manager
+      POSTGRES_PASSWORD: esg360-local
+    ports:
+      - "5432:5432"
+    volumes:
+      - esg360-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U esg360 -d esg360"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  esg360-pgdata:

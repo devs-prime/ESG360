@@ -1,0 +1,8 @@
+# Every path requires review by a code owner when branch protection enables it.
+# Replace/extend with GitHub teams as the team grows (e.g. @devs-prime/backend).
+* @bcpssdev
+
+# The contract and the decisions deserve the closest review
+/specs/ @bcpssdev
+/docs/adr/ @bcpssdev
+/esg360-shared-kernel/ @bcpssdev

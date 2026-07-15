@@ -1,0 +1,40 @@
+# SAST (spec 43 pt 35): CodeQL for Java, on PRs, pushes to main, and weekly.
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "17 4 * * 1" # weekly, Monday 04:17 UTC
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Analyze (java)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: java-kotlin
+          build-mode: manual # we compile with Maven below, rather than autobuild
+
+      - name: Build (tests skipped — CodeQL needs compilation only)
+        run: ./mvnw --batch-mode --no-transfer-progress -DskipTests -DskipITs -Dspotless.check.skip=true -Dcheckstyle.skip=true package
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v4

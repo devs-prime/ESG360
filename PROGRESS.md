@@ -11,7 +11,7 @@ Update this file at the end of every Claude Code session. Deviations from spec g
 
 | # | Module | Spec | Status | Notes |
 |---|--------|------|--------|-------|
-| 0.1 | Repo scaffolding, CI, lint, test runner, IaC skeleton | specs/technical/43 | — | |
+| 0.1 | Repo scaffolding, CI, lint, test runner, IaC skeleton | specs/technical/43 | TESTS | 2026-07-15: Maven multi-module (shared-kernel / app / architecture-tests) + `Quantity` + ArchUnit float-ban & boundary rules + Spotless/Checkstyle + GH Actions CI (build, CodeQL, SBOM, Dependabot) + Terraform skeleton (cloud open). **DB is locally hosted** (docker-compose Postgres 16; Testcontainers for ITs) — no cloud until first-customer signal. Deviations: Spring Boot 3.5.3 (plan said 3.3.x; 3.3 EOL). Local dev machine lacks a Linux-container Docker daemon → ITs verified in CI; install Docker Desktop (WSL2) locally when convenient. PR pending review. |
 | 0.2 | Shared data model + migrations baseline | specs/architecture/33, technical/39 | — | Freeze before any module |
 | 0.3 | API skeleton + OpenAPI + error/pagination conventions | specs/technical/37 | — | |
 | 0.4 | Tenant, Organisation & Boundary | specs/modules/02 | — | |
