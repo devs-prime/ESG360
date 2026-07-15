@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+    "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<!--
+  ESG360 Checkstyle: deliberately small. Formatting is Spotless's job; this file
+  carries only correctness-adjacent rules — above all the float/double ban (ADR-0006).
+  The authoritative float ban is the ArchUnit test in esg360-architecture-tests;
+  this is the fast-feedback copy that fires at `validate`.
+-->
+<module name="Checker">
+  <property name="charset" value="UTF-8"/>
+  <property name="severity" value="error"/>
+
+  <module name="TreeWalker">
+    <!-- ADR-0006: never binary floating point for quantities. Ban the types outright;
+         legitimate uses (e.g. rendering hints) can suppress locally with justification. -->
+    <module name="IllegalType">
+      <property name="illegalClassNames"
+                value="float, double, java.lang.Float, java.lang.Double, Float, Double"/>
+    </module>
+
+    <module name="AvoidStarImport"/>
+    <module name="UnusedImports"/>
+    <module name="RedundantImport"/>
+    <module name="IllegalImport">
+      <!-- sun.* is unsupported API; java.awt is a mistake in a server codebase -->
+      <property name="illegalPkgs" value="sun, java.awt"/>
+    </module>
+
+    <module name="EqualsHashCode"/>
+    <module name="StringLiteralEquality"/>
+    <module name="DefaultComesLast"/>
+    <module name="FallThrough"/>
+    <module name="MissingSwitchDefault"/>
+    <module name="EmptyCatchBlock">
+      <property name="exceptionVariableName" value="ignored"/>
+    </module>
+
+    <!-- Suppression hook: @SuppressWarnings("checkstyle:rulename") with a comment -->
+    <module name="SuppressWarningsHolder"/>
+  </module>
+
+  <module name="SuppressWarningsFilter"/>
+</module>

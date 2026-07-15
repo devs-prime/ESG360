@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.esg360</groupId>
+    <artifactId>esg360-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>esg360-architecture-tests</artifactId>
+  <name>ESG360 :: Architecture Tests</name>
+  <description>ArchUnit rules that keep ADR-0004 (module boundaries) and ADR-0006 (float ban)
+    true in CI. "Boundaries are enforced in CI by architecture tests, not review."
+    Every feature module must be added as a dependency here when created, or its
+    classes are invisible to these rules.</description>
+
+  <dependencies>
+    <!-- Every production module goes on this classpath so ArchUnit can see it -->
+    <dependency>
+      <groupId>com.esg360</groupId>
+      <artifactId>esg360-shared-kernel</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.esg360</groupId>
+      <artifactId>esg360-app</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.tngtech.archunit</groupId>
+      <artifactId>archunit-junit5</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

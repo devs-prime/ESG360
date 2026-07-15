@@ -1,0 +1,46 @@
+# CI (spec 43 pts 35–36): format check → build → unit + architecture +
+# Testcontainers integration tests → SBOM. CodeQL SAST runs in codeql.yml;
+# dependency scanning via Dependabot.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build & verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      # verify = validate (spotless+checkstyle) → test (unit+ArchUnit) →
+      # integration-test (Testcontainers against real PostgreSQL 16) → SBOM at package
+      - name: Build, lint and test
+        run: ./mvnw --batch-mode --no-transfer-progress verify
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: target/bom.*
+          if-no-files-found: error
+
+      - name: Upload test reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: "**/target/*-reports/**"

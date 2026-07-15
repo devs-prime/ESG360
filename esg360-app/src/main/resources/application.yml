@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: esg360
+  # UTC everywhere (BR-017); rendering in user/tenant timezone is presentation-layer
+  jackson:
+    time-zone: UTC
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
