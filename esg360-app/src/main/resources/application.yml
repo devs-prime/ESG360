@@ -4,6 +4,19 @@ spring:
   # UTC everywhere (BR-017); rendering in user/tenant timezone is presentation-layer
   jackson:
     time-zone: UTC
+  datasource:
+    # Local dev target is the docker-compose PostgreSQL 16 (see docker-compose.yml).
+    # Overridden per environment; tests point this at a Testcontainers instance.
+    url: ${ESG360_DB_URL:jdbc:postgresql://localhost:5432/esg360}
+    username: ${ESG360_DB_USER:esg360}
+    password: ${ESG360_DB_PASSWORD:esg360-local}
+  flyway:
+    # Plain-SQL, expand/contract migrations (ADR-0016/0017). Baseline lives under
+    # classpath:db/migration; feature modules add their own locations later.
+    enabled: true
+    locations: classpath:db/migration
+    # Flyway connects as the migration/owner role — NOT the runtime esg360_app role,
+    # which has no DDL rights and no BYPASSRLS (ADR-0003).
 
 server:
   port: 8080
