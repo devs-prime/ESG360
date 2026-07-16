@@ -22,6 +22,11 @@
       <groupId>com.esg360</groupId>
       <artifactId>esg360-web</artifactId>
     </dependency>
+    <!-- Feature modules plug in here (ADR-0004): the app assembles, modules own behaviour -->
+    <dependency>
+      <groupId>com.esg360</groupId>
+      <artifactId>esg360-identity</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>

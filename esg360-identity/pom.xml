@@ -8,17 +8,24 @@
     <version>0.1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>esg360-web</artifactId>
-  <name>ESG360 :: Web Support</name>
-  <description>Cross-cutting HTTP conventions shared by the app and every feature module (spec 37,
-    ADR-0014): decimals-as-strings JSON, Problem Details errors, correlation IDs, cursor
-    pagination, ETag/If-Match, and the idempotency store. Not the domain shared kernel.</description>
+  <artifactId>esg360-identity</artifactId>
+  <name>ESG360 :: Identity, Access and SoD</name>
+  <description>Module 03 — users, roles, scoped role assignments, segregation of duties and
+    session policy; owns PostgreSQL schema `identity` (§36 Tenant/Identity boundary). Also
+    home to the tenant-context filter that binds the validated JWT's tenant claim to the
+    per-transaction RLS setting (ADR-0003, SEC-001) — the mechanism the whole multi-tenant
+    isolation story rests on.</description>
 
   <dependencies>
     <dependency>
       <groupId>com.esg360</groupId>
       <artifactId>esg360-shared-kernel</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.esg360</groupId>
+      <artifactId>esg360-web</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
@@ -31,9 +38,8 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jdbc</artifactId>
     </dependency>
-    <!-- Tenant context is read from the validated JWT and bound to the RLS setting per
-         transaction (ADR-0003, SEC-001). The plumbing lives here because every feature
-         module needs it and none may depend on another (ADR-0004). -->
+    <!-- Resource server: validates the IdP's JWT. The IdP itself is not chosen yet
+         (ADR-0017 defers cloud/identity), so nothing here binds to a vendor. -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-security</artifactId>
@@ -46,6 +52,11 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-test</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

@@ -27,6 +27,10 @@
     </dependency>
     <dependency>
       <groupId>com.esg360</groupId>
+      <artifactId>esg360-identity</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.esg360</groupId>
       <artifactId>esg360-app</artifactId>
     </dependency>
 

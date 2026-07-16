@@ -62,9 +62,7 @@ class ArchitectureRulesTest {
     static final ArchRule feature_modules_do_not_depend_on_each_other = slices().matching("com.esg360.modules.(*)..")
             .should()
             .notDependOnEachOther()
-            .because("modules own their data and communicate via interfaces or domain events " + "(ADR-0004, §36)")
-            // no feature modules exist until PROGRESS.md item 0.4 — drop this once the first lands
-            .allowEmptyShould(true);
+            .because("modules own their data and communicate via interfaces or domain events " + "(ADR-0004, §36)");
 
     private static ArchCondition<JavaClass> notUseBinaryFloatingPoint() {
         Set<String> banned = Set.of("float", "double", "java.lang.Float", "java.lang.Double");
