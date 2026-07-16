@@ -41,7 +41,10 @@ insert into identity.permission (code, description) values
   ('identity.sod.write',              'Create and update segregation-of-duties rules'),
   ('identity.sod.approve_exception',  'Approve a documented segregation-of-duties exception'),
   ('identity.session_policy.read',    'View the tenant session policy'),
-  ('identity.session_policy.write',   'Change the tenant session policy');
+  ('identity.session_policy.write',   'Change the tenant session policy'),
+  ('identity.access_review.read',     'View access-review campaigns and their items'),
+  ('identity.access_review.write',    'Create, launch and close access-review campaigns'),
+  ('identity.access_review.certify',  'Certify or revoke an access-review item assigned to you');
 
 -- ---------------------------------------------------------------------------
 -- app_user — a human principal, federated from the tenant's IdP (req 3-001).
@@ -328,6 +331,111 @@ create trigger trg_session_policy_touch
   before update on identity.session_policy
   for each row execute function shared.touch_row_version();
 
+-- ---------------------------------------------------------------------------
+-- access_review_campaign — periodic certification of who holds what (req 3-010).
+--
+-- In v1 scope: V1-SCOPE lists "access review" under Identity, so this ships with 0.5
+-- rather than waiting for 0.11.
+--
+-- `uncertified_action` is mandatory and has no silent default at the row level beyond
+-- the safe one: the spec says uncertified access is "revoked or escalated", so which of
+-- the two happens is a decision the campaign's author must own before launch. Defaulting
+-- to 'revoke' means the fail-safe outcome is the one you get by not thinking about it.
+-- ---------------------------------------------------------------------------
+create table identity.access_review_campaign (
+  id uuid not null default shared.uuidv7(),
+  tenant_id uuid not null,
+  name text not null,
+  description text,
+  status text not null default 'draft'
+    check (status in ('draft', 'active', 'closed', 'cancelled')),
+  opens_at timestamptz,
+  due_at timestamptz,
+  uncertified_action text not null default 'revoke'
+    check (uncertified_action in ('revoke', 'escalate')),
+  closed_at timestamptz,
+  created_at timestamptz not null default now(),
+  created_by uuid not null,
+  updated_at timestamptz not null default now(),
+  updated_by uuid not null,
+  row_version integer not null default 1,
+  primary key (tenant_id, id),
+  constraint access_review_campaign_tenant_fk foreign key (tenant_id) references shared.tenant (id),
+  constraint access_review_campaign_window check (due_at is null or opens_at is null or due_at >= opens_at),
+  -- An active campaign needs a deadline: "uncertified by due_at" is the whole mechanism,
+  -- and a campaign with no due date can never revoke or escalate anything.
+  constraint access_review_campaign_active_has_due check (status <> 'active' or due_at is not null),
+  constraint access_review_campaign_closed_has_time check (status <> 'closed' or closed_at is not null)
+);
+
+select shared.apply_tenant_rls('identity.access_review_campaign');
+
+create trigger trg_access_review_campaign_touch
+  before update on identity.access_review_campaign
+  for each row execute function shared.touch_row_version();
+
+-- ---------------------------------------------------------------------------
+-- access_review_item — one role_assignment under review by one reviewer.
+--
+-- subject_user_id is denormalised from the assignment for one reason: it lets the
+-- database refuse self-certification outright. A reviewer signing off their own access
+-- is not a review, and this is the same argument as sod_exception's no-self-approval
+-- check — too important to leave to a service path someone can forget to call.
+--
+-- Decisions are recorded, never overwritten by the campaign's expiry: an item that
+-- lapses moves to 'revoked'/'escalated' with decided_by null, which is distinguishable
+-- from a human decision. "Nobody looked" and "someone decided" must never be conflated
+-- in an audit trail an assurer reads.
+-- ---------------------------------------------------------------------------
+create table identity.access_review_item (
+  id uuid not null default shared.uuidv7(),
+  tenant_id uuid not null,
+  campaign_id uuid not null,
+  role_assignment_id uuid not null,
+  subject_user_id uuid not null,
+  reviewer_user_id uuid not null,
+  decision text not null default 'pending'
+    check (decision in ('pending', 'certified', 'revoked', 'escalated')),
+  comment text,
+  decided_at timestamptz,
+  decided_by uuid,
+  created_at timestamptz not null default now(),
+  created_by uuid not null,
+  updated_at timestamptz not null default now(),
+  updated_by uuid not null,
+  row_version integer not null default 1,
+  primary key (tenant_id, id),
+  constraint access_review_item_tenant_fk foreign key (tenant_id) references shared.tenant (id),
+  constraint access_review_item_campaign_fk foreign key (tenant_id, campaign_id)
+    references identity.access_review_campaign (tenant_id, id),
+  constraint access_review_item_assignment_fk foreign key (tenant_id, role_assignment_id)
+    references identity.role_assignment (tenant_id, id),
+  constraint access_review_item_subject_fk foreign key (tenant_id, subject_user_id)
+    references identity.app_user (tenant_id, id),
+  constraint access_review_item_reviewer_fk foreign key (tenant_id, reviewer_user_id)
+    references identity.app_user (tenant_id, id),
+  constraint access_review_item_decider_fk foreign key (tenant_id, decided_by)
+    references identity.app_user (tenant_id, id),
+  constraint access_review_item_no_self_certification check (reviewer_user_id <> subject_user_id),
+  constraint access_review_item_unique unique (tenant_id, campaign_id, role_assignment_id),
+  -- Pending means untouched; anything else must say when it was settled.
+  constraint access_review_item_decided_has_time check (
+    (decision = 'pending' and decided_at is null and decided_by is null)
+    or (decision <> 'pending' and decided_at is not null)
+  )
+);
+
+select shared.apply_tenant_rls('identity.access_review_item');
+
+create index access_review_item_by_campaign on identity.access_review_item (tenant_id, campaign_id);
+create index access_review_item_pending_by_reviewer on identity.access_review_item
+  (tenant_id, reviewer_user_id)
+  where decision = 'pending';
+
+create trigger trg_access_review_item_touch
+  before update on identity.access_review_item
+  for each row execute function shared.touch_row_version();
+
 -- Business tables: read/write, never delete (V002's envelope — controlled records are
 -- inactivated, not removed). identity.permission stays select-only, granted above.
 grant select, insert, update on
@@ -337,5 +445,7 @@ grant select, insert, update on
   identity.role_assignment,
   identity.sod_rule,
   identity.sod_exception,
-  identity.session_policy
+  identity.session_policy,
+  identity.access_review_campaign,
+  identity.access_review_item
 to esg360_app;
