@@ -17,6 +17,20 @@ spring:
     locations: classpath:db/migration
     # Flyway connects as the migration/owner role — NOT the runtime esg360_app role,
     # which has no DDL rights and no BYPASSRLS (ADR-0003).
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # The tenant identity provider (module 03 req 3-001). No IdP is chosen yet
+          # (ADR-0017 defers cloud/IdP), so this is intentionally unset and has NO
+          # default: the application must FAIL TO START rather than come up without
+          # token validation. Tenant isolation is derived from the token (SEC-001,
+          # Critical), so "boots but authenticates nobody" is the one outcome worse
+          # than "does not boot". Any OIDC-compliant issuer satisfies this.
+          issuer-uri: ${ESG360_OIDC_ISSUER:}
+          # Tests supply their own decoder from a generated keypair — see
+          # com.esg360.app.testsupport.TestIdentityConfig. Never point this at a
+          # committed key.
 
 server:
   port: 8080

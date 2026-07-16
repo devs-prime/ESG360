@@ -14,6 +14,7 @@ import javax.sql.DataSource;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -21,12 +22,21 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.esg360.app.Esg360Application;
+import com.esg360.app.testsupport.TestIdentityConfig;
 import com.esg360.web.error.ConflictException;
 import com.esg360.web.idempotency.IdempotencyService;
 import com.esg360.web.idempotency.IdempotentOutcome;
 
-/** Idempotency store semantics against real PostgreSQL: replay, payload-change conflict, key independence (COL-002). */
+/**
+ * Idempotency store semantics against real PostgreSQL: replay, payload-change conflict, key
+ * independence (COL-002).
+ *
+ * <p>Imports {@link TestIdentityConfig} because the application deliberately refuses to start
+ * without a token decoder (see application.yml) — there is no IdP in a test JVM, so the test
+ * supplies one from a generated keypair.
+ */
 @SpringBootTest(classes = Esg360Application.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@Import(TestIdentityConfig.class)
 @Testcontainers
 class IdempotencyServiceIT {
 

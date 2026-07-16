@@ -14,11 +14,14 @@ import javax.sql.DataSource;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import com.esg360.app.testsupport.TestIdentityConfig;
 
 /**
  * The item 0.2 acceptance gate: boot the app against a real PostgreSQL 16, let Flyway apply the
@@ -28,8 +31,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * <p>Flyway/Spring connect as the container superuser (the owner/migration role). Runtime access
  * is exercised by SET ROLE esg360_app, which mirrors how the deployed app connects: no superuser,
  * no BYPASSRLS, subject to RLS.
+ *
+ * <p>Imports {@link TestIdentityConfig} because the application deliberately refuses to start
+ * without a token decoder (see application.yml) — there is no IdP in a test JVM, so the test
+ * supplies one from a generated keypair.
  */
 @SpringBootTest(classes = Esg360Application.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@Import(TestIdentityConfig.class)
 @Testcontainers
 class SharedDataModelIT {
 
