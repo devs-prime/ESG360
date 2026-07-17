@@ -45,10 +45,11 @@ jobs:
           set -euo pipefail
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- esg360-identity/src/main/jooq; then
+          # status, not diff: diff would miss a first generation entirely (untracked files).
+          if [ -z "$(git status --porcelain -- esg360-identity/src/main/jooq)" ]; then
             echo "jOOQ sources already match the migrations — nothing to commit."
             exit 0
           fi
-          git add esg360-identity/src/main/jooq
+          git add -A -- esg360-identity/src/main/jooq
           git commit -m "chore: regenerate jOOQ sources from migrations [skip ci]"
           git push origin HEAD:"${{ github.ref_name }}"

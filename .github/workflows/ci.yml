@@ -37,15 +37,30 @@ jobs:
       # schema. Fix by running the "jOOQ codegen" workflow on this branch, or locally with
       # `./mvnw -pl esg360-identity -Pjooq-codegen generate-sources`.
       - name: Check committed jOOQ sources match the migrations
+        id: jooq-check
         run: |
           set -euo pipefail
           ./mvnw --batch-mode --no-transfer-progress -pl esg360-identity -Pjooq-codegen generate-sources
-          if ! git diff --quiet -- esg360-identity/src/main/jooq; then
+          # `git status --porcelain`, NOT `git diff`: diff ignores untracked files, so a
+          # never-committed generated tree would report "clean" and the gate would pass while
+          # proving nothing. status reports new (??), modified and deleted alike.
+          changes="$(git status --porcelain -- esg360-identity/src/main/jooq)"
+          if [ -n "$changes" ]; then
             echo "::error::Committed jOOQ sources are stale — regenerate them (see the jOOQ codegen workflow)."
-            git diff --stat -- esg360-identity/src/main/jooq
+            echo "$changes"
             exit 1
           fi
           echo "jOOQ sources are up to date with the migrations."
+
+      # Lets a regeneration be fetched and committed when no dev machine can run codegen
+      # (and bootstraps the very first generation, before the sources exist at all).
+      - name: Upload regenerated jOOQ sources when stale
+        if: ${{ failure() && steps.jooq-check.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: jooq-generated
+          path: esg360-identity/src/main/jooq
+          if-no-files-found: warn
 
       - name: Upload SBOM
         uses: actions/upload-artifact@v4
