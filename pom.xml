@@ -36,6 +36,22 @@
     <!-- Guardrails -->
     <archunit.version>1.3.0</archunit.version>
 
+    <!-- jOOQ codegen (ADR-0017). jOOQ itself is managed by the Spring Boot BOM (3.19.24), so
+         generated code and runtime cannot drift apart. -->
+    <testcontainers-jooq-codegen.version>0.0.4</testcontainers-jooq-codegen.version>
+    <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
+    <!-- PLUGIN-scope only. A BOM imported with scope=import contributes dependencyManagement but
+         NOT properties, and plugin dependencies are not managed by dependencyManagement at all —
+         so these must be spelled out. Deliberately named apart from the BOM's own
+         testcontainers.version/postgresql.version: setting those here would look like it
+         re-versions the project's dependencies, which an imported BOM ignores. Keep in step with
+         what spring-boot-dependencies resolves (verified: TC 1.21.2, driver 42.7.7). -->
+    <jooq-codegen.testcontainers.version>1.21.2</jooq-codegen.testcontainers.version>
+    <jooq-codegen.postgresql.version>42.7.7</jooq-codegen.postgresql.version>
+    <!-- Must match the image the ITs use: V006 relies on UNIQUE ... NULLS NOT DISTINCT (PG15+),
+         so codegen against an older default image would fail on the migration. -->
+    <jooq-codegen.postgres.image>postgres:16-alpine</jooq-codegen.postgres.image>
+
     <!-- API contract-first (ADR-0014) -->
     <openapi-generator.version>7.10.0</openapi-generator.version>
     <swagger-annotations.version>2.2.25</swagger-annotations.version>
@@ -165,6 +181,13 @@
         <version>${spotless-maven-plugin.version}</version>
         <configuration>
           <java>
+            <!-- Hand-written code only. src/main/jooq holds committed generated sources
+                 (see esg360-identity): formatting them would fight the generator on every
+                 regeneration and make the freshness diff fail for cosmetic reasons. -->
+            <includes>
+              <include>src/main/java/**/*.java</include>
+              <include>src/test/java/**/*.java</include>
+            </includes>
             <palantirJavaFormat/>
             <removeUnusedImports/>
             <importOrder>

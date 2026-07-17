@@ -1,0 +1,54 @@
+# Regenerate the committed jOOQ sources (ADR-0017).
+#
+# Why this exists: jOOQ codegen needs a Linux Docker daemon to start PostgreSQL and apply the
+# Flyway migrations, and not every dev machine can provide one — the primary dev box is a VMware
+# guest whose host does not expose nested virtualisation, so WSL2/Hyper-V cannot run at all. The
+# generated sources are therefore committed (so `mvnw verify` works with no Docker anywhere), and
+# this workflow is the supported way to refresh them.
+#
+# Run it from the Actions tab (or the API) against the branch whose migrations changed. It commits
+# the regenerated sources back to that branch. `ci.yml` independently re-runs codegen on every push
+# and fails if the committed output is stale, so drift between schema and generated code cannot
+# survive review.
+#
+# When a dev machine does have Docker, prefer doing it locally — same result, no round-trip:
+#   ./mvnw -pl esg360-identity -Pjooq-codegen generate-sources
+name: jOOQ codegen
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    name: Regenerate and commit jOOQ sources
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Regenerate jOOQ sources
+        run: ./mvnw --batch-mode --no-transfer-progress -pl esg360-identity -Pjooq-codegen generate-sources
+
+      - name: Commit if changed
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- esg360-identity/src/main/jooq; then
+            echo "jOOQ sources already match the migrations — nothing to commit."
+            exit 0
+          fi
+          git add esg360-identity/src/main/jooq
+          git commit -m "chore: regenerate jOOQ sources from migrations [skip ci]"
+          git push origin HEAD:"${{ github.ref_name }}"

@@ -38,6 +38,11 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jdbc</artifactId>
     </dependency>
+    <!-- jOOQ: typed SQL, not an ORM (ADR-0017). Generated classes under src/main/jooq. -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jooq</artifactId>
+    </dependency>
     <!-- Resource server: validates the IdP's JWT. The IdP itself is not chosen yet
          (ADR-0017 defers cloud/identity), so nothing here binds to a vendor. -->
     <dependency>
@@ -60,4 +65,108 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <!-- src/main/jooq holds the COMMITTED generated sources. They are committed because
+           codegen needs a Linux Docker daemon, which not every dev machine can provide (the
+           primary dev box is a VMware guest without nested virtualisation). Committing keeps
+           `mvnw verify -DskipITs` working everywhere; CI regenerates and diffs to prove the
+           committed code still matches the migrations — see the jooq-codegen-check workflow. -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>${build-helper-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>add-jooq-sources</id>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <phase>generate-sources</phase>
+            <configuration>
+              <sources>
+                <source>src/main/jooq</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <!--
+      Regenerate the jOOQ classes from the Flyway migrations. Requires a Linux Docker daemon,
+      so it is OFF by default and never runs in a normal build:
+
+          ./mvnw -pl esg360-identity -Pjooq-codegen generate-sources
+
+      The plugin starts PostgreSQL 16, applies every migration, then generates from the live
+      schema — schema → codegen → typed queries, exactly ADR-0017's Flyway-first chain. It reads
+      the migrations from esg360-app by path rather than by dependency: esg360-app depends on
+      THIS module, so a Maven dependency would be circular. Only the identity schema is generated
+      here; each module generates the schema it owns (ADR-0004).
+    -->
+    <profile>
+      <id>jooq-codegen</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-jooq-codegen-maven-plugin</artifactId>
+            <version>${testcontainers-jooq-codegen.version}</version>
+            <dependencies>
+              <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${jooq-codegen.testcontainers.version}</version>
+              </dependency>
+              <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${jooq-codegen.postgresql.version}</version>
+              </dependency>
+            </dependencies>
+            <executions>
+              <execution>
+                <id>generate-identity-schema</id>
+                <goals>
+                  <goal>generate</goal>
+                </goals>
+                <phase>generate-sources</phase>
+                <configuration>
+                  <database>
+                    <type>POSTGRES</type>
+                    <containerImage>${jooq-codegen.postgres.image}</containerImage>
+                  </database>
+                  <flyway>
+                    <locations>filesystem:${maven.multiModuleProjectDirectory}/esg360-app/src/main/resources/db/migration</locations>
+                  </flyway>
+                  <jooq>
+                    <generator>
+                      <database>
+                        <inputSchema>identity</inputSchema>
+                        <includes>.*</includes>
+                        <!-- Flyway's bookkeeping table is not application schema. -->
+                        <excludes>flyway_schema_history</excludes>
+                      </database>
+                      <generate>
+                        <javaTimeTypes>true</javaTimeTypes>
+                        <deprecated>false</deprecated>
+                      </generate>
+                      <target>
+                        <packageName>com.esg360.modules.identity.jooq</packageName>
+                        <directory>src/main/jooq</directory>
+                      </target>
+                    </generator>
+                  </jooq>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

@@ -31,6 +31,22 @@ jobs:
       - name: Build, lint and test
         run: ./mvnw --batch-mode --no-transfer-progress verify
 
+      # The jOOQ sources are committed (ADR-0017 + no Docker on every dev machine), which means
+      # they can silently fall behind the migrations. Regenerate and diff: if a migration changed
+      # without the sources being refreshed, fail here rather than let typed queries lie about the
+      # schema. Fix by running the "jOOQ codegen" workflow on this branch, or locally with
+      # `./mvnw -pl esg360-identity -Pjooq-codegen generate-sources`.
+      - name: Check committed jOOQ sources match the migrations
+        run: |
+          set -euo pipefail
+          ./mvnw --batch-mode --no-transfer-progress -pl esg360-identity -Pjooq-codegen generate-sources
+          if ! git diff --quiet -- esg360-identity/src/main/jooq; then
+            echo "::error::Committed jOOQ sources are stale — regenerate them (see the jOOQ codegen workflow)."
+            git diff --stat -- esg360-identity/src/main/jooq
+            exit 1
+          fi
+          echo "jOOQ sources are up to date with the migrations."
+
       - name: Upload SBOM
         uses: actions/upload-artifact@v4
         with:
